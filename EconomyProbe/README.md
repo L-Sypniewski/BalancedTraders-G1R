@@ -22,7 +22,13 @@ vanilla curve indirectly?"* — see the repo README.
   and teleports you to them, streaming-safe: Cavalorn & Wolf (Hunters,
   +0.2 on trophies), Cipher / Dexter / Viper / Fortuno (Generals, -0.1).
   Plus "+1000 ore to me".
-- Copies everything as CSV.
+- Cursor tip: open the game inventory (frees the mouse), then click into
+  the top menu bar / panel; move the pointer off the UI to get camera back.
+- Build-102 note: mods get a REDUCED ImGui binding set (e.g.
+  `ImGui::SeparatorText` compiles in vanilla tools but NOT in mods — leave
+  it out). This panel only uses compile-proven calls (Text, TextDisabled,
+  Separator, Button, Checkbox, SameLine); values are read off the panel
+  (no clipboard).
 
 ## Protocol for a clean measurement
 
