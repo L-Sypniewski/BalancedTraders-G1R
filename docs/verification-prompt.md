@@ -117,7 +117,7 @@ the in-game steps to the user via a question tool):
   vanilla 0-ore baseline is documented.
 - `curve-fit.md` exists with fitted parameters or an explicit statement of
   what data is still missing.
-- All changes pushed to a branch or PR against main (do not force-push).
+- All changes pushed to a branch or PR against master (do not force-push).
 
 ## GUARDRAILS
 
