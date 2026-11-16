@@ -1,0 +1,9 @@
+{
+	"name": "BalancedTraders",
+	"title": "Balanced Traders - Smooth Trophy Sell Prices (native port)",
+	"author": "L-Sypniewski (native port). Original mod: Altos25",
+	"description": "Hunting trophies never sell for 0 ore. Floors the sell value of zero-priced trophies (e.g. lizard claws, scavenger teeth) and arrows to a minimum of 1 ore at every trader, keeping the game's regional and per-trader dynamic pricing fully intact. Native AngelScript port of BalancedTraders by Altos25 (Nexus Mods #473, v1.0.2).",
+	"projectWebsiteURL": "https://www.nexusmods.com/gothic1remake/mods/473",
+	"modVersion": "1.0.2",
+	"loadOrder": "normal"
+}

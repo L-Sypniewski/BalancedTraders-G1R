@@ -1,0 +1,63 @@
+// BalancedTraders user settings — injected into the game's own Settings
+// screen ("Game" section, category "Balanced Traders") via
+// UGothicModExt_UserSettings. Values persist with the game's user settings.
+//
+// Build compatibility notes (game build Build102_CL175960):
+// - The struct constructor args from the current G1R-Modkit example
+//   (DefaultValue / DisplayText / MinValue / MaxValue / StepSize /
+//   Changeability = EModUserSettingsChangeability::...) are NOT bound in
+//   this game build's script API and fail to compile. Only the value
+//   member is bound: FModUserSettingsBool/Int/Float(Value = ...).
+//   (The binds cache lists the C++ names "bValue"/"Value"; the script-side
+//   constructor argument is "Value" for all three.)
+// - When the game update matching G1R-Modkit main ships, re-add the richer
+//   args for labeled rows, sliders and main-menu-only changeability.
+
+UCLASS(Config=GameUserSettings)
+class UBalancedTraders_UserSettings : UGothicModExt_UserSettings
+{
+	default CategoryName = FText::FromString("Balanced Traders");
+
+	// Master switch for the low-tier trophy value floor. false restores the
+	// vanilla value (3 ore) for lizard claws and scavenger teeth.
+	UPROPERTY(Config)
+	FModUserSettingsBool EnableTrophyFloors = FModUserSettingsBool(
+		Value = true);
+
+	// Base value applied to UItAt_Lizard_01 / UItAt_Scavenger_01.
+	// 3 = vanilla (can round to 0 ore at harsh traders), 5 = mod default.
+	UPROPERTY(Config)
+	FModUserSettingsInt TrophyFloorValue = FModUserSettingsInt(
+		Value = 5);
+
+	// Base value of arrows (UItAm_Arrow). 1 = vanilla (rounds to 0 ore
+	// after sell multipliers), 2 = mod default (always >= 1 ore).
+	UPROPERTY(Config)
+	FModUserSettingsInt ArrowValue = FModUserSettingsInt(
+		Value = 2);
+}
+
+/**
+ * Applies the configured values to the item definition default objects when
+ * a world is ready to play. The native price calculation reads m_Value from
+ * these definition CDOs, so prices update accordingly. Runs once per world
+ * load (idempotent). The compile-time ReplaceParentClass overrides in
+ * TrophyFloors.as provide the same defaults if this subsystem never runs.
+ */
+class UBalancedTraders_ApplierSubsystem : UGothicModExt_WorldSubsystem
+{
+	UFUNCTION(BlueprintOverride)
+	void HandleReadyForPlay()
+	{
+		int32 TrophyValue = 3; // vanilla
+		if (UBalancedTraders_UserSettings.DefaultObject.EnableTrophyFloors.Value)
+		{
+			TrophyValue = UBalancedTraders_UserSettings.DefaultObject.TrophyFloorValue.Value;
+		}
+
+		UItAt_Lizard_01.DefaultObject.m_Value = TrophyValue;
+		UItAt_Scavenger_01.DefaultObject.m_Value = TrophyValue;
+		UItAm_Arrow.DefaultObject.m_Value =
+			UBalancedTraders_UserSettings.DefaultObject.ArrowValue.Value;
+	}
+}

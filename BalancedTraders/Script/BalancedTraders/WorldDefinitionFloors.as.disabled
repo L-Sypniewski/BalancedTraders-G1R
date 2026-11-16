@@ -1,0 +1,26 @@
+// OPTIONAL MODULE (disabled) — "decline smoothing" via WorldDefinition floors.
+//
+// This is the native-script equivalent of the ORIGINAL AUTHOR'S OWN disabled
+// balance module (balance_patch.lua in BalancedTraders UE4SS, which shipped
+// with BalanceEnabled = false): raising the lower bounds of the dynamic
+// price multipliers from -1.0 to -0.25 so the saturation/liquidity drop can
+// never fully zero out a price.
+//
+// In AngelScript this needs no runtime hook — a compile-time
+// ReplaceParentClass override of the script-defined UDefaultWorldDefinition
+// is enough, which also makes it multi-mod-safe on the current build.
+//
+// WHY IT IS DISABLED BY DEFAULT (matching the original author's choice):
+// unlike the trophy curve, these floors apply to EVERY item category and to
+// buy prices too — food, potions, weapons included. Enable only if you want
+// the whole economy flattened above a -25% dynamic discount.
+//
+// To enable: rename this file to WorldDefinitionFloors.as
+// (this file is not compiled in its .disabled state).
+
+UCLASS(meta = (ReplaceParentClass))
+class UDefaultWorldDefinition_BalancedTradersFloors : UDefaultWorldDefinition
+{
+	default m_RegionalMultiplierMin = -0.25f;
+	default m_LiquidityMultiplierMin = -0.25f;
+}

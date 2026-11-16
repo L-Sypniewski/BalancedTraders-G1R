@@ -1,0 +1,9 @@
+{
+	"name": "EconomyProbe",
+	"title": "Economy Probe (IngameTools panel)",
+	"author": "L-Sypniewski",
+	"description": "Developer tool: an IngameTools panel that records per-unit trophy sell prices (ore delta per sale) so the game's native market-saturation price curve can be measured and fitted. Requires -ingametools. Companion tool of the BalancedTraders native port.",
+	"projectWebsiteURL": "https://github.com/L-Sypniewski/BalancedTraders-G1R",
+	"modVersion": "0.1.0",
+	"loadOrder": "normal"
+}
