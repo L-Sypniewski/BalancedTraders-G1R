@@ -9,20 +9,25 @@ vanilla curve indirectly?"* — see the repo README.
 ## What it does
 
 - Polls (every frame, only script-visible data): player ore
-  (`CountItemsOfClass(UItMi_Orenugget)`) and units of the tracked item
-  (default: shadowbeast teeth).
+  (`CountItemsOfClass(UItMi_Orenugget)`) and units of the tracked item.
 - When units drop and ore rises, records `units_sold -> ore_gained` as one
-  observation.
-- Shows the running sequence with each step's ratio vs the first unit
-  (≈ the saturation multiplier), and copies everything as CSV.
+  observation; shows ratios vs the first unit (≈ saturation multiplier) and
+  vs the item's base value (≈ total sell multiplier).
+- **Test-rig buttons** (no grinding needed): Give 10 / 50 / 200 of the
+  tracked item straight into the player inventory, item presets
+  (shadowbeast teeth 25, lizard skin 13, wolf fur 5, arrows), and a custom
+  class-name picker.
+- Copies everything as CSV.
 
 ## Protocol for a clean measurement
 
-1. `Steam Launch Options`:
-   `-ingametools -Mods=EconomyProbe` (install under `G1R/Mods/` first).
+1. `Steam Launch Options`: `-ingametools -Mods=EconomyProbe`
+   (install under `G1R/Mods/` first; both flags also settable via the
+   Mod Management UI).
 2. New game or a save where the trader still has plenty of ore (liquidity
    also lowers prices — keep it constant across the session).
-3. Open Ingame Tools → Economy → Sell Curve Probe.
+3. The tool appears in the ImGui **top menu bar** → Economy → Sell Curve
+   Probe. Pick a preset, "Give 50".
 4. Sell **exactly one unit per trade acceptance**, repeatedly, to the same
    trader, same session.
 5. Copy CSV. The n-th `ore_delta` is the marginal price of unit n.
