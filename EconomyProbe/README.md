@@ -17,6 +17,11 @@ vanilla curve indirectly?"* — see the repo README.
   tracked item straight into the player inventory, item presets
   (shadowbeast teeth 25, lizard skin 13, wolf fur 5, arrows), and a custom
   class-name picker.
+- **One-click session setup**: each trader button finds the merchant,
+  gives them +1000 ore (keeps liquidity constant during the measurement)
+  and teleports you to them, streaming-safe: Cavalorn & Wolf (Hunters,
+  +0.2 on trophies), Cipher / Dexter / Viper / Fortuno (Generals, -0.1).
+  Plus "+1000 ore to me".
 - Copies everything as CSV.
 
 ## Protocol for a clean measurement

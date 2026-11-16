@@ -35,6 +35,11 @@ class UEconomyProbeTool : UIngameTool
 
 	bool bWatching = true;
 	FString ClassNameInput = "ItAt_Shadow_03";
+	FString LastStatus = "";
+
+	// Streaming-safe teleport machinery (vanilla cheat-command pattern).
+	UCheatCommandWithPartitionStreamingProvider StreamProvider;
+	FOnStreamingCompleteDelegate OnStreamed;
 
 	int LastOre = -1;
 	int LastUnits = -1;
@@ -44,6 +49,45 @@ class UEconomyProbeTool : UIngameTool
 	// Observation rows: cumulative units sold | ore gained in that step.
 	TArray<int> UnitMarks;
 	TArray<int> OreDeltas;
+
+	UFUNCTION(BlueprintOverride)
+	void Initialize()
+	{
+		if (!OnStreamed.IsBound())
+			OnStreamed.BindUFunction(this, n"HandleStreamComplete");
+	}
+
+	UFUNCTION()
+	private void HandleStreamComplete(FVector Location)
+	{
+		UCheatModeHelper::TeleportTo(this, Location);
+		LastStatus = "arrived";
+	}
+
+	private void SetupTrader(FName TraderUniqueName, FString TraderLabel)
+	{
+		AGothicCharacterState Trader = AGothicCharacterState::FindByUniqueName(this, TraderUniqueName);
+		if (!IsValid(Trader))
+		{
+			LastStatus = f"{TraderLabel}: not found (different chapter / not spawned?)";
+			return;
+		}
+
+		// Keep the trader's ore deep so liquidity stays constant.
+		Trader.Inventory.AddItemOfClass(UItMi_Orenugget::StaticClass(), 1000);
+
+		FVector Target = Trader.GetActorLocation();
+		if (!UCheatModeHelper::CanPlayerTeleport())
+		{
+			LastStatus = f"{TraderLabel}: can't teleport right now (in interaction?)";
+			return;
+		}
+
+		if (StreamProvider == nullptr)
+			StreamProvider = NewObject(this, UCheatCommandWithPartitionStreamingProvider);
+		StreamProvider.LoadStreamingMap(OnStreamed, Target);
+		LastStatus = f"{TraderLabel}: +1000 trader ore, teleporting...";
+	}
 
 	private AGothicPlayerState GetPS() const
 	{
@@ -74,9 +118,10 @@ class UEconomyProbeTool : UIngameTool
 
 	private void GiveTracked(int Count)
 	{
-		if (!IsValid(GetPS()) || !IsValid(TrackedItemClass.Get()))
+		if (!IsValid(TrackedItemClass.Get()))
 			return;
-		GetPS().Inventory.AddItemOfClass(TrackedItemClass, Count);
+		UCheatModeHelper::AddItemsToInventory(this, TrackedItemClass, Count);
+		LastStatus = f"given {Count}x {TrackedItemClass.Get().Name}";
 	}
 
 	private void SetTrackedClass(TSubclassOf<UItemDefinition> NewClass, FString NewName)
@@ -155,6 +200,31 @@ class UEconomyProbeTool : UIngameTool
 			: FString("<invalid>");
 		ImGui::InputText("Tracked item", ItemName, ImGuiInputTextFlags::ReadOnly);
 		ImGui::Text(f"base value: {GetTrackedBaseValue()}   ore: {GetPlayerOre()}   units left: {GetTrackedUnits()}");
+
+		ImGui::SeparatorText("Session setup (one click: +1000 trader ore + teleport)");
+		if (ImGui::Button("Cavalorn - Hunter +0.2 (Wilderness)"))
+			SetupTrader(n"UL_STT_Cavalorn_336", "Cavalorn");
+		if (ImGui::Button("Wolf - Hunter +0.2 (New Camp)"))
+			SetupTrader(n"NC_ORG_Wolf_855", "Wolf");
+		if (ImGui::Button("Cipher - General -0.1 (New Camp, rich)"))
+			SetupTrader(n"NC_ORG_Cipher_873", "Cipher");
+		if (ImGui::Button("Dexter - General -0.1 (Old Camp)"))
+			SetupTrader(n"OC_STT_Dexter_329", "Dexter");
+		if (ImGui::Button("Viper - General -0.1 (Old Mine)"))
+			SetupTrader(n"OM_STT_Viper_302", "Viper");
+		if (ImGui::Button("Fortuno - General -0.1 (Swamp Camp)"))
+			SetupTrader(n"SC_NOV_Fortuno_1357", "Fortuno");
+		ImGui::SameLine();
+		if (ImGui::Button("+1000 ore to me"))
+		{
+			if (IsValid(GetPS()))
+			{
+				GetPS().Inventory.AddItemOfClass(UItMi_Orenugget::StaticClass(), 1000);
+				LastStatus = "player ore topped up";
+			}
+		}
+		if (!LastStatus.IsEmpty())
+			ImGui::Text(f"> {LastStatus}");
 
 		ImGui::SeparatorText("Test stock");
 		if (ImGui::Button("Give 10"))
