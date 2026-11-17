@@ -47,12 +47,10 @@ class UEconomyProbeTool : UIngameTool
 			return;
 		}
 
-		Trader.Inventory.AddItemOfClass(UItMi_Orenugget::StaticClass(), 1000);
-
 		PendingTraderName = TraderUniqueName;
 		PendingTraderLabel = TraderLabel;
 		System::SetTimer(this, n"DoDeferredTeleport", 0.1f, false);
-		LastStatus = f"{TraderLabel}: +1000 ore, teleport scheduled...";
+		LastStatus = f"{TraderLabel}: teleport scheduled...";
 	}
 
 	// Timer callback (game thread, outside the ImGui draw loop): raw
@@ -95,7 +93,7 @@ class UEconomyProbeTool : UIngameTool
 	{
 		if (!IsValid(GetPS()))
 			return -1;
-		return GetPS().Inventory.CountItemsOfClass(UItMi_Orenugget::StaticClass());
+		return GetPS().Inventory.CountItemOfTypeInSlot(UItMi_Orenugget::StaticClass(), EInventoryTypes::Pouch);
 	}
 
 	private int GetTrackedUnits() const
@@ -195,7 +193,8 @@ class UEconomyProbeTool : UIngameTool
 		ImGui::Text(f"base value: {GetTrackedBaseValue()}   ore: {GetPlayerOre()}   units left: {GetTrackedUnits()}");
 
 		ImGui::Separator();
-		ImGui::Text("Trader ore top-up (+1000, then travel there):");
+		ImGui::Text("Teleport to trader (their trade wallet is native state -");
+		ImGui::TextDisabled("fatten it by BUYING from them first: your ore -> their wallet):");
 		if (ImGui::Button("Cavalorn - Hunter (Wilderness)"))
 			SetupTrader(n"UL_STT_Cavalorn_336", "Cavalorn");
 		if (ImGui::Button("Wolf - Hunter (New Camp)"))
@@ -208,7 +207,7 @@ class UEconomyProbeTool : UIngameTool
 		if (ImGui::Button("+1000 ore me"))
 		{
 			if (IsValid(GetPS()))
-				GetPS().Inventory.AddItemOfClass(UItMi_Orenugget::StaticClass(), 1000);
+				GetPS().Inventory.AddItemOfClassInventory(UItMi_Orenugget::StaticClass(), 1000, EInventoryTypes::Pouch);
 		}
 
 		if (LastStatus != "ready")
