@@ -20,6 +20,7 @@ class UEconomyProbeTool : UIngameTool
 
 	bool bWatching = true;
 	FString ClassNameInput = "ItAt_Shadow_03";
+	FString LastStatus = "ready";
 
 	int LastOre = -1;
 	int LastUnits = -1;
@@ -41,25 +42,40 @@ class UEconomyProbeTool : UIngameTool
 	}
 
 	UFUNCTION()
-	private void HandleStreamComplete(FVector Location)
+	void HandleStreamComplete(FVector Location)
 	{
 		UCheatModeHelper::TeleportTo(Location);
+		LastStatus = "arrived";
 	}
 
 	private void SetupTrader(FName TraderUniqueName, FString TraderLabel)
 	{
 		AGothicCharacterState Trader = AGothicCharacterState::FindByUniqueName(TraderUniqueName);
 		if (!IsValid(Trader))
+		{
+			LastStatus = f"{TraderLabel}: character NOT found (unique name wrong / not spawned)";
 			return;
+		}
 
 		Trader.Inventory.AddItemOfClass(UItMi_Orenugget::StaticClass(), 1000);
+		LastStatus = f"{TraderLabel}: found, +1000 ore";
 
 		FVector Target = Trader.GetActorLocation();
 		if (!UCheatModeHelper::CanPlayerTeleport())
+		{
+			LastStatus = f"{TraderLabel}: ore ok, but CanPlayerTeleport=false";
 			return;
+		}
 
 		if (StreamProvider == nullptr)
 			StreamProvider = NewObject(this, UCheatCommandWithPartitionStreamingProvider);
+		if (!IsValid(StreamProvider))
+		{
+			LastStatus = f"{TraderLabel}: stream provider failed to create";
+			return;
+		}
+
+		LastStatus = f"{TraderLabel}: ore ok, teleporting (streaming)...";
 		StreamProvider.LoadStreamingMap(OnStreamed, Target);
 	}
 
@@ -187,6 +203,9 @@ class UEconomyProbeTool : UIngameTool
 			if (IsValid(GetPS()))
 				GetPS().Inventory.AddItemOfClass(UItMi_Orenugget::StaticClass(), 1000);
 		}
+
+		if (LastStatus != "ready")
+			ImGui::Text(f"> {LastStatus}");
 
 		ImGui::Separator();
 		ImGui::Text("Test stock:");
