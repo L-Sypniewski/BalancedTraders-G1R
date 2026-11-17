@@ -35,6 +35,9 @@ class UEconomyProbeTool : UIngameTool
 	// unstreamed area, and LoadStreamingMap from the draw loop, both hang
 	// the game thread). Travel normally instead; this tops up the trader's
 	// ore so liquidity stays constant during measurement.
+	FName PendingTraderName;
+	FString PendingTraderLabel;
+
 	private void SetupTrader(FName TraderUniqueName, FString TraderLabel)
 	{
 		AGothicCharacterState Trader = AGothicCharacterState::FindByUniqueName(TraderUniqueName);
@@ -45,7 +48,42 @@ class UEconomyProbeTool : UIngameTool
 		}
 
 		Trader.Inventory.AddItemOfClass(UItMi_Orenugget::StaticClass(), 1000);
-		LastStatus = f"{TraderLabel}: found, +1000 ore (travel there normally)";
+
+		PendingTraderName = TraderUniqueName;
+		PendingTraderLabel = TraderLabel;
+		System::SetTimer(this, n"DoDeferredTeleport", 0.1f, false);
+		LastStatus = f"{TraderLabel}: +1000 ore, teleport scheduled...";
+	}
+
+	// Timer callback (game thread, outside the ImGui draw loop): raw
+	// floor-aligned character teleport, vanilla GASCharacterStateMixins idiom.
+	UFUNCTION()
+	void DoDeferredTeleport()
+	{
+		AGothicCharacterState Trader = AGothicCharacterState::FindByUniqueName(PendingTraderName);
+		AGothicCharacterState PlayerCS = AGothicPlayerState::LocalPlayerState;
+		if (!IsValid(Trader) || !IsValid(PlayerCS))
+		{
+			LastStatus = "teleport aborted (trader or player gone)";
+			return;
+		}
+
+		FVector SpotLocation = Trader.GetActorLocation();
+		SpotLocation.X += 150.0f;
+
+		AGothicCharacter Character = PlayerCS.GetCharacter();
+		FHitResult Hit;
+		if (IsValid(Character) && MagicScript::FindFloorAtLocation(SpotLocation, Hit, Character, ECollisionChannel::IKTrace, -200, 10))
+		{
+			SpotLocation.Z = Hit.ImpactPoint.Z;
+			SpotLocation.Z += Character.CapsuleComponent.ScaledCapsuleHalfHeight;
+		}
+
+		bool bMoved = PlayerCS.Teleport(SpotLocation, FRotator(0.0f, 0.0f, 0.0f));
+		if (bMoved)
+			LastStatus = f"{PendingTraderLabel}: arrived";
+		else
+			LastStatus = f"{PendingTraderLabel}: Teleport() returned false";
 	}
 
 	private AGothicPlayerState GetPS() const
