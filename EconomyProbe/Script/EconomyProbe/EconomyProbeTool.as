@@ -30,53 +30,22 @@ class UEconomyProbeTool : UIngameTool
 	TArray<int> UnitMarks;
 	TArray<int> OreDeltas;
 
-	// Streaming-safe teleport machinery (vanilla cheat-command pattern).
-	UCheatCommandWithPartitionStreamingProvider StreamProvider;
-	FOnStreamingCompleteDelegate OnStreamed;
-
-	UFUNCTION(BlueprintOverride)
-	void Initialize()
-	{
-		if (!OnStreamed.IsBound())
-			OnStreamed.BindUFunction(this, n"HandleStreamComplete");
-	}
-
-	UFUNCTION()
-	void HandleStreamComplete(FVector Location)
-	{
-		UCheatModeHelper::TeleportTo(Location);
-		LastStatus = "arrived";
-	}
-
+	// Ore-only: teleports FREEZE the game when called from the tool's ImGui
+	// context (observed in-game on build 106: direct TeleportTo into an
+	// unstreamed area, and LoadStreamingMap from the draw loop, both hang
+	// the game thread). Travel normally instead; this tops up the trader's
+	// ore so liquidity stays constant during measurement.
 	private void SetupTrader(FName TraderUniqueName, FString TraderLabel)
 	{
 		AGothicCharacterState Trader = AGothicCharacterState::FindByUniqueName(TraderUniqueName);
 		if (!IsValid(Trader))
 		{
-			LastStatus = f"{TraderLabel}: character NOT found (unique name wrong / not spawned)";
+			LastStatus = f"{TraderLabel}: character NOT found (wrong name / not spawned)";
 			return;
 		}
 
 		Trader.Inventory.AddItemOfClass(UItMi_Orenugget::StaticClass(), 1000);
-		LastStatus = f"{TraderLabel}: found, +1000 ore";
-
-		FVector Target = Trader.GetActorLocation();
-		if (!UCheatModeHelper::CanPlayerTeleport())
-		{
-			LastStatus = f"{TraderLabel}: ore ok, but CanPlayerTeleport=false";
-			return;
-		}
-
-		if (StreamProvider == nullptr)
-			StreamProvider = NewObject(this, UCheatCommandWithPartitionStreamingProvider);
-		if (!IsValid(StreamProvider))
-		{
-			LastStatus = f"{TraderLabel}: stream provider failed to create";
-			return;
-		}
-
-		LastStatus = f"{TraderLabel}: ore ok, teleporting (streaming)...";
-		StreamProvider.LoadStreamingMap(OnStreamed, Target);
+		LastStatus = f"{TraderLabel}: found, +1000 ore (travel there normally)";
 	}
 
 	private AGothicPlayerState GetPS() const
@@ -188,7 +157,7 @@ class UEconomyProbeTool : UIngameTool
 		ImGui::Text(f"base value: {GetTrackedBaseValue()}   ore: {GetPlayerOre()}   units left: {GetTrackedUnits()}");
 
 		ImGui::Separator();
-		ImGui::Text("Session setup (+1000 trader ore + teleport):");
+		ImGui::Text("Trader ore top-up (+1000, then travel there):");
 		if (ImGui::Button("Cavalorn - Hunter (Wilderness)"))
 			SetupTrader(n"UL_STT_Cavalorn_336", "Cavalorn");
 		if (ImGui::Button("Wolf - Hunter (New Camp)"))
