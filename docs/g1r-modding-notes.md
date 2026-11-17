@@ -63,6 +63,12 @@ shipped vanilla `Script/` tree is the ground truth for dialect idioms
 (`#if WITH_IMGUI`, f-string specs like `:.1f`, `ClassName.Get().Name`,
 trailing named ctor args).
 
+## Don'ts
+
+- **NEVER file issues, discussions or PRs on third-party repos** (Alkimia/
+  G1R-Modkit, Hazelight, etc.). Findings stay in this repo's docs; the owner
+  decides what gets reported upstream.
+
 ## Publishing
 
 `-ModManagementUI` → select mod → **Prepare Steam Workshop Item** → details
