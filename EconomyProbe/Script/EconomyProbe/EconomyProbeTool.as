@@ -43,12 +43,12 @@ class UEconomyProbeTool : UIngameTool
 	UFUNCTION()
 	private void HandleStreamComplete(FVector Location)
 	{
-		UCheatModeHelper::TeleportTo(this, Location);
+		UCheatModeHelper::TeleportTo(Location);
 	}
 
 	private void SetupTrader(FName TraderUniqueName, FString TraderLabel)
 	{
-		AGothicCharacterState Trader = AGothicCharacterState::FindByUniqueName(this, TraderUniqueName);
+		AGothicCharacterState Trader = AGothicCharacterState::FindByUniqueName(TraderUniqueName);
 		if (!IsValid(Trader))
 			return;
 
