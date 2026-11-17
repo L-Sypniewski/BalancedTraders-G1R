@@ -93,7 +93,7 @@ class UEconomyProbeTool : UIngameTool
 	{
 		if (!IsValid(GetPS()))
 			return -1;
-		return GetPS().Inventory.CountItemOfTypeInSlot(UItMi_Orenugget::StaticClass(), EInventoryTypes::Pouch);
+		return GetPS().Inventory.CountItemsOfClass(UItMi_Orenugget::StaticClass());
 	}
 
 	private int GetTrackedUnits() const
